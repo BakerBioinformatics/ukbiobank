@@ -22,14 +22,22 @@ get_mean_sd <- function(dataset, field, decimals=1) {
 }
 
 
+get_median_iqr <- function(dataset, field, decimals=1) {
+	values <- dataset[ , c(field)]
+	m <- format(round(median(values), decimals), nsmall = decimals)
+	q25 <- format(round(quantile(values, 0.25), decimals), nsmall = decimals)
+	q75 <- format(round(quantile(values, 0.75), decimals), nsmall = decimals)
+	return(paste0(m, " (",q25,"-",q75,")"))
+}
+
 # Returns the df dataframe, but attach an empty row followed by one row per possible value on 
 #the column 'field' and its respective percentage and number of occurrences. Field MUST be a 
 #factor type 
 categorical_field <- function(dataset, df, field){  
   #add empty space
-  df[nrow(df) + 1, ] <- " "
+  df[nrow(df) + 1, ] <- c(" ")
   for(i in levels(dataset[ , c(field)]))
-    df[nrow(df) + 1, ] <- get_count_per(dataset, field, i, nrow(dataset))
+    df[nrow(df) + 1, ] <- get_count_per(dataset, field, i)
   return(df)
 }
 
