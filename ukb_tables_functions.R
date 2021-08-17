@@ -97,15 +97,15 @@ load_death_tables <- function(date_death=NULL) {
 # -secondary diagnosis
 # -death cause
 compute_cases_icd10 <- function(data, codes, truncated=FALSE) {
-  #Death
+	#Death
   if(truncated) {
     cases_death <- (death_cause[death_cause$cause_icd10 %like%
                     paste(codes, collapse = '|'), ])[ ,c('eid','cause_icd10')]
   }
-  else {
+  else 
     cases_death <- (death_cause[death_cause$cause_icd10 %in% codes, ])[ ,c('eid','cause_icd10')]
-  }
-  cases_death <- merge(cases_death, death, by.x='eid', by.y='eid', all.y=FALSE)
+  cases_death <- merge(cases_death, death[, c('eid','date_of_death')], 
+											 by.x='eid', by.y='eid', all.y=FALSE)
   cases_death$code_type <- 'ICD10'
   cases_death$source <- 'Death'
   names(cases_death)[names(cases_death) == 'cause_icd10'] <- 'code'
@@ -122,7 +122,7 @@ compute_cases_icd10 <- function(data, codes, truncated=FALSE) {
   }
   cases_hes <- cases_hes[cases_hes$eid %in% data$eid, c('eid','ins_index','diag_icd10')]
   ##get dates
-  cases_hes <- merge(cases_hes, hesin,
+  cases_hes <- merge(cases_hes, hesin[ , c('eid', 'ins_index', 'epistart','admidate','epiend','disdate')],
                      by.x=c('eid','ins_index'),
                      by.y=c('eid','ins_index'),
                      all.y=FALSE)
@@ -163,7 +163,7 @@ compute_cases_opcs4 <- function(data, codes, truncated=FALSE) {
   }
   cases_op <- cases_op[cases_op$eid %in% data$eid, c('eid','ins_index','oper4')]
   ##get dates from hesin (becasue opdate in hesin_oper is inconsistent)
-  cases_op <- merge(cases_op, hesin,
+  cases_op <- merge(cases_op, hesin[ , c('eid', 'ins_index', 'epistart','admidate','epiend','disdate')],
                      by.x=c('eid','ins_index'),
                      by.y=c('eid','ins_index'),
                      all.y=FALSE)
