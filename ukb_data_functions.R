@@ -64,14 +64,17 @@ extract_columns_by_names <- function(my_data, col_names) {
 #Match dates with codes 
 #ex: "type_of_cancer_icd10_f40006_" and "date_of_cancer_diagnosis_f40005_"
 get_dates_and_codes <- function(my_data, codes_column, dates_column, codes=NULL, truncated=FALSE) {
-	codes <- my_data %>% pivot_longer(cols=starts_with(codes_column), 
-																		names_to = "array", names_prefix=codes_column, 
-																		values_to= "code", values_drop_na=FALSE) %>% select(eid, array, code)
-	dates <- my_data %>% pivot_longer(cols=starts_with(dates_column),
-                                    names_to = "array", names_prefix=dates_column,
-                                    values_to= "date", values_drop_na=FALSE) %>% select(eid, array, date)
+	my_data <- extract_columns_by_names(my_data, c(codes_column, dates_column))
+	if(!is.null(codes))
+		my_data <- filter_data_by_field_codes(my_data, codes_column, codes, truncated)
+	c_data <- my_data %>% pivot_longer(cols=starts_with(codes_column), 
+																		 names_to = "array", names_prefix=codes_column, 
+																		 values_to= "code", values_drop_na=TRUE) %>% select(eid, array, code)
+	d_data <- my_data %>% pivot_longer(cols=starts_with(dates_column),
+																		 names_to = "array", names_prefix=dates_column,
+																		 values_to= "date", values_drop_na=TRUE) %>% select(eid, array, date)
 	#Merge and remove NAs
-	d_and_c <- inner_join(codes, dates, by = c("eid", "array")) %>% drop_na()
+	d_and_c <- inner_join(c_data, d_data, by = c("eid", "array"))
 	#Filter by codes
 	if(!is.null(codes)) {
 		if(truncated) 
