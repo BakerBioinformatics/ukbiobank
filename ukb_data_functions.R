@@ -60,3 +60,27 @@ extract_columns_by_names <- function(my_data, col_names) {
   return(data)
 }
 
+
+#Match dates with codes 
+#ex: "type_of_cancer_icd10_f40006_" and "date_of_cancer_diagnosis_f40005_"
+get_dates_and_codes <- function(my_data, codes_column, dates_column, codes=NULL, truncated=FALSE) {
+	codes <- my_data %>% pivot_longer(cols=starts_with(codes_column), 
+																		names_to = "array", names_prefix=codes_column, 
+																		values_to= "code", values_drop_na=FALSE) %>% select(eid, array, code)
+	dates <- my_data %>% pivot_longer(cols=starts_with(dates_column),
+                                    names_to = "array", names_prefix=dates_column,
+                                    values_to= "date", values_drop_na=FALSE) %>% select(eid, array, date)
+	#Merge and remove NAs
+	d_and_c <- inner_join(codes, dates, by = c("eid", "array")) %>% drop_na()
+	#Filter by codes
+	if(!is.null(codes)) {
+		if(truncated) 
+			d_and_c <- filter(d_and_c, code %like% paste(codes, collapse = '|'))
+		else
+			d_and_c <- filter(d_and_c, code %in% codes)
+	}
+	return(d_and_c)
+}
+
+
+

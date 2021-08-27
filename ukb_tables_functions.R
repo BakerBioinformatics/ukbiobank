@@ -49,41 +49,42 @@ load_hesin_tables <- function(date_hesin=NULL, load_hesin=TRUE,
 															date_mate=NULL, load_mate=FALSE, 
 															date_oper=NULL, load_oper=FALSE,
 															date_psyc=NULL, load_psyc=FALSE) {
+	tables_loc <- "/baker/datasets/ukb55469/Tables_coding_info/Hes/"
 	if(load_hesin) {
-		hesin <- load_table("/baker/datasets/ukb55469/Tables/Hes/", "hesin", date_hesin)
+		hesin <- load_table(tables_loc, "hesin", date_hesin)
 		assign('hesin', hesin, envir=.GlobalEnv)
 	}
 
 	if(load_crit) {
-    hesin_critical <- load_table("/baker/datasets/ukb55469/Tables/Hes/", "hesin_critical", date_crit)
+    hesin_critical <- load_table(tables_loc, "hesin_critical", date_crit)
     assign('hesin_critical', hesin_critical, envir=.GlobalEnv)
   }
 	if(load_deli) {
-    hesin_delivery <- load_table("/baker/datasets/ukb55469/Tables/Hes/", "hesin_delivery", date_deli)
+    hesin_delivery <- load_table(tables_loc, "hesin_delivery", date_deli)
     assign('hesin_delivery', hesin_delivery, envir=.GlobalEnv)
   }
 	if(load_diag) {
-    hesin_diag <- load_table("/baker/datasets/ukb55469/Tables/Hes/", "hesin_diag", date_diag)
+    hesin_diag <- load_table(tables_loc, "hesin_diag", date_diag)
     assign('hesin_diag', hesin_diag, envir=.GlobalEnv)
   }
 	if(load_mate) {
-    hesin_maternity <- load_table("/baker/datasets/ukb55469/Tables/Hes/", "hesin_maternity", date_mate)
+    hesin_maternity <- load_table(tables_loc, "hesin_maternity", date_mate)
     assign('hesin_maternity', hesin_maternity, envir=.GlobalEnv)
   }
 	if(load_oper) {
-    hesin_oper <- load_table("/baker/datasets/ukb55469/Tables/Hes/", "hesin_oper", date_oper)
+    hesin_oper <- load_table(tables_loc, "hesin_oper", date_oper)
     assign('hesin_oper', hesin_oper, envir=.GlobalEnv)
   }
 	if(load_psyc) {
-    hesin_psych <- load_table("/baker/datasets/ukb55469/Tables/Hes/", "hesin_psych", date_psyc)
+    hesin_psych <- load_table(tables_loc, "hesin_psych", date_psyc)
     assign('hesin_psych', hesin_psych, envir=.GlobalEnv)
 	}
 }
 
 load_death_tables <- function(date_death=NULL) {
-	death <- load_table("/baker/datasets/ukb55469/Tables/Death_register/", "death", date_death)
+	death <- load_table("/baker/datasets/ukb55469/Tables_coding_info/Death_register/", "death", date_death)
 	assign('death', death, envir=.GlobalEnv)
-	death_cause <- load_table("/baker/datasets/ukb55469/Tables/Death_register/", "death_cause", date_death)
+	death_cause <- load_table("/baker/datasets/ukb55469/Tables_coding_info/Death_register/", "death_cause", date_death)
   assign('death_cause', death_cause, envir=.GlobalEnv)
 }
 
@@ -211,7 +212,7 @@ get_incident <- function(data, cases_data) {
 #############################
 three_character_icd_cases <- function(data, code, only_first=FALSE){
   gp_date <- '190907'
-  gp_clinical <- fread(paste0("/baker/datasets/ukb55469/Tables/GP/gp_clinical_",
+  gp_clinical <- fread(paste0("/baker/datasets/ukb55469/Tables_coding_info/GP/gp_clinical_",
                              gp_date, ".txt"), header=TRUE)
   #Cases from Death records
   cases_death <- (death_cause[death_cause$cause_icd10 %like% code, ])[ ,c('eid','cause_icd10')]
@@ -228,8 +229,8 @@ three_character_icd_cases <- function(data, code, only_first=FALSE){
   cases_death <- cases_death[cases_death$date_2 > 20060000, ]
 
 	 #Cases from Primary Care redords (GP)
-  r2_codes <- fread("/baker/datasets/ukb55469/Main_data/Coding/coding1834.tsv", header=TRUE)
-  r3_codes <- fread("/baker/datasets/ukb55469/Main_data/Coding/coding1835.tsv", header=TRUE)
+  r2_codes <- fread("/baker/datasets/ukb55469/Tables_coding_info/Coding/coding1834.tsv", header=TRUE)
+  r3_codes <- fread("/baker/datasets/ukb55469/Tables_coding_info/Coding/coding1835.tsv", header=TRUE)
   r2_codes <- r2_codes[r2_codes$meaning == code, ]
   r3_codes <- r3_codes[r3_codes$meaning == code, ]
   gp_clinical <- gp_clinical[gp_clinical$eid %in% data$eid, ]
@@ -273,7 +274,7 @@ three_character_icd_cases <- function(data, code, only_first=FALSE){
   names(cases_hes)[names(cases_hes) == 'diag_icd10'] <- 'code'
   cases_hes$code_type <- 'ICD10'
   ##ICD-9
-  icd9_codes <- fread("/baker/datasets/ukb55469/Main_data/Coding/coding1836.tsv", header=TRUE)
+  icd9_codes <- fread("/baker/datasets/ukb55469/Tables_coding_info/Coding/coding1836.tsv", header=TRUE)
   icd9_codes <- icd9_codes[icd9_codes$meaning == code, ]
   cases_hes2 <- hesin_diag[(hesin_diag$diag_icd9 %in% icd9_codes$coding) & (hesin_diag$level  %in% c('1','2')), ]
   cases_hes2 <- cases_hes2[cases_hes2$eid %in% data$eid, c('eid','ins_index','diag_icd9')]
@@ -295,7 +296,7 @@ three_character_icd_cases <- function(data, code, only_first=FALSE){
                                          format='%Y%m%d'))) %>% arrange(eid, date_2)
 
 	#Cases from Self Reported records (SR)
-  sr_codes <- fread("/baker/datasets/ukb55469/Main_data/Coding/coding609.tsv", header=TRUE)
+  sr_codes <- fread("/baker/datasets/ukb55469/Tables_coding_info/Coding/coding609.tsv", header=TRUE)
   sr_codes <- sr_codes[sr_codes$meaning == code, ]
   sr_codes <- sr_codes$coding
   cases_sr <- extract_self_reported_nc(data, sr_codes)
