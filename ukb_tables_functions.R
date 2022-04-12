@@ -212,12 +212,13 @@ get_incident <- function(data, cases_data) {
 #############################
 three_character_icd_cases <- function(data, code, only_first=FALSE){
   gp_date <- '190907'
-  gp_clinical <- fread(paste0("/baker/datasets/ukb55469/Tables_coding_info/GP/gp_clinical_",
+  gp_clinical <- fread(paste0("/baker/datasets/ukb55469/Tables_coding_info/Gp/gp_clinical_",
                              gp_date, ".txt"), header=TRUE)
   #Cases from Death records
   cases_death <- (death_cause[death_cause$cause_icd10 %like% code, ])[ ,c('eid','cause_icd10')]
   cases_death <- merge(cases_death, death, by.x='eid', by.y='eid', all.y=FALSE)
   cases_death$code_type <- 'ICD10'
+	cases_death$source <- NULL
   cases_death$source <- 'Death'
   names(cases_death)[names(cases_death) == 'cause_icd10'] <- 'code'
   names(cases_death)[names(cases_death) == 'date_of_death'] <- 'date'
@@ -299,8 +300,8 @@ three_character_icd_cases <- function(data, code, only_first=FALSE){
   sr_codes <- fread("/baker/datasets/ukb55469/Tables_coding_info/Coding/coding609.tsv", header=TRUE)
   sr_codes <- sr_codes[sr_codes$meaning == code, ]
   sr_codes <- sr_codes$coding
-  cases_sr <- extract_self_reported_nc(data, sr_codes)
-  df <- data.frame(eid=character(),
+  cases_sr <- filter_data_by_field_codes(data, 20002, sr_codes)  #using UKB field 2002 Self reported
+	df <- data.frame(eid=character(),
                    code=character(),
                    date=character())
   sr_field <- "noncancer_illness_code_selfreported_f20002"
@@ -347,6 +348,10 @@ three_character_icd_cases <- function(data, code, only_first=FALSE){
                                          format='%Y%m%d'))) %>% arrange(eid, date_2)
 
   #adding all together
+	cases_death <- cases_death[ ,c('eid', 'code', 'date', 'code_type', 'source', 'date_2')]
+	cases_hes <- cases_hes[ ,c('eid', 'code', 'date', 'code_type', 'source', 'date_2')]
+	cases_sr <- cases_sr[ ,c('eid', 'code', 'date', 'code_type', 'source', 'date_2')]
+	cases_gp <- cases_gp[ ,c('eid', 'code', 'date', 'code_type', 'source', 'date_2')]
   cases <- rbind(cases_death, cases_hes, cases_sr, cases_gp)
   cases <- cases %>% distinct()
   if(only_first){
